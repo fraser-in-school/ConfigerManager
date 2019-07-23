@@ -1,0 +1,36 @@
+{
+  "appenders": {
+    "console": {
+      "type": "stdout"
+    },
+    "redis": {
+      "type": "file",
+      "filename": "logs/redis.log",
+      "maxLogSize": 2000
+    },
+    "error": {
+      "type": "dateFile",
+      "filename": "logs/errors.log"
+    },
+    "errors": {
+      "type": "logLevelFilter",
+      "level": "ERROR",
+      "appender": "error"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "console"
+      ],
+      "level": "info"
+    },
+    "redis": {
+      "appenders": [
+        "redis",
+        "errors"
+      ],
+      "level": "debug"
+    }
+  }
+}
