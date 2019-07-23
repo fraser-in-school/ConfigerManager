@@ -19,10 +19,27 @@ async function test() {
         //await manager.delKey('key6');
         await config.setMap('map', new Map([['key', 'value'], ['name', 5], ['first', 5]]))
 
-        await config.setArray('array', new Array([1, 3, 5, 5]));
+        await config.setArray('array', new Array(1, 3, 5, 5));
 
         await config.setString('string', 'it is string');
-        //config.quit()
+
+        await config.pushArrayTail('array', [7, 8, 9]);
+
+        await config.pushArrayHead('array', 0)
+
+        await logger.info('arr', config.getArray('array'))
+
+        await config.addSet('set', 7, 8, 9)
+
+        await config.popSet('set')
+
+        logger.info('set', config.getSet('set'))
+
+        await logger.info('map', await config.popArrayHead('array'))
+
+        await logger.info(config.map)
+
+        config.quit()
     }
 
 }

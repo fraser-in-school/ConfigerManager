@@ -23,10 +23,14 @@ Array.prototype.pushHead = function(){
 
 Array.prototype.popHead = function(count){
     if(typeof count === "undefined"){
-        this.splice(0,1);
+        let head = this[0];
+        this.splice(0, 1);
+        return head;
     }
     if(typeof count === "number"){
-        this.splice(0,count);
+        let head = this.splice(0,count);
+        this.splice(count);
+        return head;
     }
 }
 
@@ -148,23 +152,6 @@ class ConfigManger{
      * @param keys
      * @returns {Promise<number>}
      */
-    async delKey(keys){
-        let num = 0;
-        if(keys){
-            for(let key of keys){
-                if(this.map.has(key)){
-                    try{
-                        this._delKey(key);
-                        num ++;
-                    } catch (e) {
-                        redisLog.error('----error', e);
-                    }
-                }
-            }
-        }
-        return num;
-    }
-
     async delMap(key){
         key = 'h_' + key;
         if(!this.map.has(key)){
@@ -255,7 +242,7 @@ class ConfigManger{
             this._addKey(key);
             this.map.set(key, value);
             for(let element of value){
-                await this.client.lpush(key, element);
+                await this.client.rpushAsync(key, element);
             }
         }
     }
@@ -283,6 +270,187 @@ class ConfigManger{
     async setZset(key, value){
 
     }
+
+    /***
+     *  将 element 加入到 set
+     *  key 必须是 Set type 或者是为空
+     * @param key
+     * @param element
+     * @returns {Promise<void>}
+     */
+    async addSet(key, elements){
+        key = 'a_' + key;
+        if(Object.prototype.toString.call(elements) == TYPE.SET){
+            for(let element of elements){
+                if(!this.map.has(key)){
+                    this.map.set(key, new Set());
+                    this.map.get(key).add(element);
+                    await this.client.saddAsync(key, element);
+                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                    this.map.get(key).add(element);
+                    await this.client.saddAsync(key, element);
+                }else{
+                    this.catchError(`---Err, this key: ${key.substring(2)} is not the array type!`)
+                }
+                this.notifyChange();
+            }
+        }else{
+            if(!this.map.has(key)){
+                this.map.set(key, new Set());
+                this.map.get(key).add(elements);
+                await this.client.saddAsync(key, elements);
+            }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                this.map.get(key).add(elements);
+                await this.client.saddAsync(key, elements);
+            }else{
+                this.catchError(`---Err, this key: ${key.substring(2)} is not the array type!`)
+            }
+            this.notifyChange();
+        }
+    }
+    /**
+     * 取出随机元素
+     * @param key
+     * @returns {Promise<void>}
+     */
+    async popSet(key){
+        key = 'a_' + key;
+        if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+            if(this.map.get(key).size > 0){
+                let ret = await this.client.spopAsync(key);
+                this.map.get(key).delete(ret);
+                return ret;
+            }else{
+                this.catchError(`---Err, List length is 0`);
+            }
+        }else{
+            this.catchError(`---Err, Wrong Type! the type of this key is not List`);
+        }
+    }
+
+    /***
+     *  将 element 插入到 array 头部
+     *  key 必须是 array type 或者是为空
+     * @param key
+     * @param elements
+     * @returns {Promise<void>}
+     */
+    async pushArrayHead(key, elements){
+        key = 'a_' + key;
+        if(Object.prototype.toString.call(elements) == TYPE.LIST){
+            for(let element of elements){
+                if(!this.map.has(key)){
+                    this.map.set(key, new Array());
+                    this.map.get(key).pushHead(element);
+                    await this.client.lpushAsync(key, element);
+                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                    this.map.get(key).pushHead(element);
+                    await this.client.lpushAsync(key, element);
+                }else{
+                    this.catchError(`---Err, this key: ${key.substring(2)} is not the array type!`)
+                }
+                this.notifyChange();
+            }
+        }else{
+            try{
+                if(!this.map.has(key)){
+                    this.map.set(key, new Array());
+                    this.map.get(key).pushHead(elements);
+                    await this.client.lpushAsync(key, elements);
+                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                    this.map.get(key).pushHead(elements);
+                    await this.client.lpushAsync(key, elements);
+                }else{
+                    this.catchError(`---Err, this key: ${key.substring(2)} is not the array type!`)
+                }
+                this.notifyChange();
+            } catch (e) {
+                this.catchError('---Err', e);
+            }
+        }
+    }
+
+    /***
+     *  将 element 插入到 array 尾部
+     *  key 必须是 array type 或者是为空
+     * @param key
+     * @param elements
+     * @returns {Promise<void>}
+     */
+    async pushArrayTail(key, elements){
+        key = 'a_' + key;
+        if(Object.prototype.toString.call(elements) == TYPE.LIST){
+            for(let element of elements){
+                if(!this.map.has(key)){
+                    this.map.set(key, new Array());
+                    this.map.get(key).push(element);
+                    await this.client.rpushAsync(key, element);
+                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                    this.map.get(key).push(element);
+                    await this.client.rpushAsync(key, element);
+                }else{
+                    this.catchError(`---Err, this key: ${key.substring(2)} is not the array type!`)
+                }
+                this.notifyChange();
+            }
+        }else{
+            try{
+                if(!this.map.has(key)){
+                    this.map.set(key, new Array());
+                    this.map.get(key).push(elements);
+                    await this.client.rpushAsync(key, elements);
+                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                    this.map.get(key).push(elements);
+                    await this.client.rpushAsync(key, elements);
+                }else{
+                    this.catchError(`---Err, this key: ${key.substring(2)} is not the array type!`)
+                }
+                this.notifyChange();
+            } catch (e) {
+                this.catchError('---Err', e);
+            }
+        }
+    }
+
+    /**
+     * 取出队头元素
+     * @param key
+     * @returns {Promise<void>}
+     */
+    async popArrayHead(key){
+        key = 'a_' + key;
+        if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+            if(this.map.get(key).length > 0){
+                await this.client.lpopAsync(key);
+                return this.map.get(key).popHead();
+            }else{
+                this.catchError(`---Err, List length is 0`);
+            }
+        }else{
+            this.catchError(`---Err, Wrong Type! the type of this key is not List`);
+        }
+    }
+
+    /**
+     * 取出队尾元素
+     * @param key
+     * @returns {Promise<void>}
+     */
+    async popArrayTail(key){
+        key = 'a_' + key;
+        let ret;
+        if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+            if(this.map.get(key).length > 0){
+                ret = this.map.get(key).pop();
+                await this.client.rpopAsync(key);
+            }else{
+                this.catchError(`---Err, List length is 0`);
+            }
+        }else{
+            this.catchError(`---Err, Wrong Type! the type of this key is not List`);
+        }
+    }
+
     /**
      * 捕获异常
      * @param err
