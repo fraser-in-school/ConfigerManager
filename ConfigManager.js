@@ -212,13 +212,12 @@ class ConfigManger{
     async setString(key, value){
         key = 'n_' + key;
         if(this.map.has(key)){
-            this.catchError(`error! key: ${key} is exists!`);
-        }else{
-            if(Object.prototype.toString.call(value) === TYPE.STRING){
-                this._addKey(key);
-                this.map.set(key, value);
-                await this.client.set(key, value);
-            }
+            this._delKey(key);
+        }
+        if(Object.prototype.toString.call(value) === TYPE.STRING){
+            this._addKey(key);
+            this.map.set(key, value);
+            await this.client.set(key, value);
         }
     }
     /**
@@ -230,14 +229,13 @@ class ConfigManger{
     async setMap(key, value){
         key = 'h_' + key;
         if(this.map.has(key)){
-            this.catchError(`error! key: ${key} is exists!`);
-        }else{
-            if(Object.prototype.toString.call(value) === TYPE.HASH){
-                this._addKey(key);
-                this.map.set(key, value);
-                for(let element of value){
-                    await this.client.hsetAsync(key, element[0], element[1]);
-                }
+            this._delKey(key);
+        }
+        if(Object.prototype.toString.call(value) === TYPE.HASH){
+            this._addKey(key);
+            this.map.set(key, value);
+            for(let element of value){
+                await this.client.hsetAsync(key, element[0], element[1]);
             }
         }
     }
@@ -251,14 +249,13 @@ class ConfigManger{
     async setArray(key, value){
         key = 'a_' + key;
         if(this.map.has(key)){
-            this.catchError(`error! key: ${key} is exists!`);
-        }else{
-            if(Object.prototype.toString.call(value) === TYPE.LIST){
-                this._addKey(key);
-                this.map.set(key, value);
-                for(let element of value){
-                    await this.client.lpush(key, element);
-                }
+            this._delKey(key);
+        }
+        if(Object.prototype.toString.call(value) === TYPE.LIST){
+            this._addKey(key);
+            this.map.set(key, value);
+            for(let element of value){
+                await this.client.lpush(key, element);
             }
         }
     }
@@ -272,14 +269,13 @@ class ConfigManger{
     async setSet(key, value){
         key = 's_' + key;
         if(this.map.has(key)){
-            this.catchError(`error! key: ${key} is exists!`);
-        }else{
-            if(Object.prototype.toString.call(value) === TYPE.SET){
-                this._addKey(key);
-                this.map.set(key, value);
-                for(let element of value){
-                    await this.client.saddAsync(key, element);
-                }
+            this._delKey(key);
+        }
+        if(Object.prototype.toString.call(value) === TYPE.SET){
+            this._addKey(key);
+            this.map.set(key, value);
+            for(let element of value){
+                await this.client.saddAsync(key, element);
             }
         }
     }
