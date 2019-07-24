@@ -279,14 +279,14 @@ class ConfigManger{
      * @returns {Promise<void>}
      */
     async addSet(key, elements){
-        key = 'a_' + key;
-        if(Object.prototype.toString.call(elements) == TYPE.SET){
+        key = 's_' + key;
+        if(Object.prototype.toString.call(elements) == TYPE.LIST){
             for(let element of elements){
                 if(!this.map.has(key)){
                     this.map.set(key, new Set());
                     this.map.get(key).add(element);
                     await this.client.saddAsync(key, element);
-                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.LIST){
+                }else if(Object.prototype.toString.call(this.map.get(key)) == TYPE.SET){
                     this.map.get(key).add(element);
                     await this.client.saddAsync(key, element);
                 }else{
