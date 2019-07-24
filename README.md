@@ -1,3 +1,4 @@
+7.23
 # ConfigerManager
 RedisConfigerManager
 
@@ -10,6 +11,8 @@ RedisConfigerManager
 
 3. array(list) 的 set 和 get del 方法
 
+4. set 以及 array(list) 的push 以及 pop 方法
+
 现在不支持的操作
 
 SortedSet 的各种操作
@@ -17,17 +20,22 @@ SortedSet 的各种操作
 set, map(hash), array(list) 的插入操作
 
 与redis command 的不同
-1） 为了保持统一， string 类型的 key 也不支持覆盖
+
+1）	为了保持统一， string 类型的 key 也不支持覆盖
+
+1） 所有类型都支持覆盖
 
 2） del 命令也需要提供 key 的类型
 
 后续的改进地方
-
+//绿色为已完成
 1） 支持所有类型的 key 的覆盖
 
-2） 提供 set, map(hash), array(list) 的插入操作
+2） 提供 set, array(list) 的插入操作
 
-3） 考虑对 sortedSort 的支持
+3） 提供 map(hash) 的修改操作
+
+4） 考虑对 sortedSort 的支持
 
 特点
 
